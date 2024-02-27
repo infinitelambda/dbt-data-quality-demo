@@ -1,0 +1,30 @@
+name: alerting test failures
+
+on:
+  workflow_dispatch: # manual trigger
+
+jobs:
+  snowflake:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install deps
+        run: pip install diqu
+
+      - name: Alert to Slack
+        run: diqu alert -t slack
+        env:
+          TODO: TODO
+
+      - name: Alert to JIRA
+        run: |
+          diqu alert -t jira
+        env:
+          TODO: TODO

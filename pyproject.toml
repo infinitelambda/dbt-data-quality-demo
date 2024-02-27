@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "dbt-data-quality-demo"
+version = "0.0.0"
+description = "Demo: Data Quality Management with dbt"
+authors = ["Infinite Lambda <contact@infinitelambda.com>"]
+readme = "README.md"
+license = "Apache-2.0"
+repository = "https://github.com/infinitelambda/dbt-data-quality-demo"
+homepage = "https://infinitelambda.com"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.13"
+dbt-snowflake = "^1.7.0"
+
+[tool.poetry.dev-dependencies]
+poethepoet = "^0.16.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poe.tasks]
+dbt-verify = [
+  {cmd = "dbt deps"},
+  {cmd = "dbt debug"},
+]
