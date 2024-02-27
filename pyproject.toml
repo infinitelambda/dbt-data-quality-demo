@@ -24,3 +24,6 @@ dbt-verify = [
   {cmd = "dbt deps"},
   {cmd = "dbt debug"},
 ]
+dbt-build = [
+  {cmd = "dbt build --vars '{dq_tools_enable_store_test_results: true}'"},
+]
