@@ -18,13 +18,12 @@ jobs:
       - name: Install deps
         run: pip install diqu
 
-      - name: Alert to Slack
-        run: diqu alert -t slack
+      - name: Alert to Slack & JIRA
+        run: diqu alert -t slack -t jira
         env:
-          TODO: TODO
-
-      - name: Alert to JIRA
-        run: |
-          diqu alert -t jira
-        env:
-          TODO: TODO
+          DBT_ENV_SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          DBT_ENV_SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+          DBT_ENV_SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          DBT_ENV_SECRET_SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SLACK: TODO
+          JIRA: TODO
