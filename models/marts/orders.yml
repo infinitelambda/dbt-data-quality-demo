@@ -3,6 +3,11 @@ models:
     description: This table has basic information about orders, as well as some derived facts based on payments
     tags: 
       - jf
+    tests:
+      - dbt_utils.recency:
+          datepart: day
+          field: order_date
+          interval: 1
 
     columns:
       - name: order_id
