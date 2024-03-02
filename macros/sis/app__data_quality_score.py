@@ -56,8 +56,6 @@ sql = f"""
     
 """
 data = session.sql(sql)
-with st.expander(label="Data"):
-    st.dataframe(data)
 
 card_columns = st.columns(3)
 card_data = data.select(
@@ -95,19 +93,23 @@ with kpis_columns[5]:
     data_kpi = data.filter("DQ_KPI = 'Validity'").collect()
     st.metric(label="Validity", value=float(data_kpi[0]["DQ_SCORE"]), delta=float(data_kpi[0]["DQ_SCORE_DELTA"]))
 
-# Last 30 days score
-st.caption("Last 30 days Scoring:")
+with st.expander(label="Data"):
+    st.dataframe(data)
+    
+# Last 7 days score
+st.caption("Last 7 days Scoring:")
 sql = f"""
     WITH source AS (
         SELECT * FROM dbt_dat.bi_dq_metrics
     ),
     dim_date AS (
         SELECT  DATEADD(DAY, -SEQ4(), CURRENT_DATE()) AS date
-        FROM    TABLE(GENERATOR(ROWCOUNT=>30))
+        FROM    TABLE(GENERATOR(ROWCOUNT=>7))
         WHERE   date <= (SELECT MAX(DATE_TRUNC('day', run_time)) FROM source)
     )
     SELECT      dim_date.date AS run_time,
-                COALESCE(AVG((source.rows_processed - source.rows_failed) * 1.00 / NULLIF(source.rows_processed,0)), 0) * 100 AS score
+                CAST(COALESCE(AVG((source.rows_processed - source.rows_failed) * 1.00 / NULLIF(source.rows_processed,0)), 0) AS FLOAT) * 100 AS score,
+                CAST(90 AS FLOAT) AS target
     FROM        dim_date
     LEFT JOIN   source
         ON      source.run_time::DATE = dim_date.date
@@ -115,19 +117,20 @@ sql = f"""
     ORDER BY    1 desc
 """
 data = session.sql(sql)
+st.line_chart(data=data.to_pandas(), x="RUN_TIME", y=["SCORE", "TARGET"], use_container_width=True)
+
 with st.expander(label="Data"):
     st.dataframe(data, use_container_width=True)
-st.line_chart(data=data.to_pandas(), x="RUN_TIME", y="SCORE", use_container_width=True)
-
+    
 # Source data
 st.subheader("Source data")
-st.caption("Sample 100 most recent logs")
-sql = f"""
-    SELECT      * 
-    FROM        dq_issue_log 
-    WHERE       no_of_records != 0
-    ORDER BY    check_timestamp desc
-    LIMIT       100
-"""
-data = session.sql(sql).collect()
-st.dataframe(data, use_container_width=True)
+with st.expander("Sample 100 most recent logs"):
+    sql = f"""
+        SELECT      * 
+        FROM        dq_issue_log 
+        WHERE       no_of_records != 0
+        ORDER BY    check_timestamp desc
+        LIMIT       100
+    """
+    data = session.sql(sql).collect()
+    st.dataframe(data, use_container_width=True)

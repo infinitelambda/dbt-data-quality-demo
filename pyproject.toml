@@ -27,12 +27,12 @@ dbt-verify = [
 dbt-build = [
   {cmd = "dbt build --vars '{dq_tools_enable_store_test_results: true}'"},
 ]
-deploy-dqc = [
+deploy-dqs = [
   {cmd = "dbt run-operation sis_deploy__app__data_quality_score"},
 ]
 deploy-dtc = [
-  {cmd = "dbt run-operation sis_deploy__test_coverage"},
+  {cmd = "dbt run-operation sis_deploy__app__test_coverage"},
 ]
 deploy-dti = [
-  {cmd = "dbt run-operation sis_deploy__today_issues"},
+  {cmd = "dbt run-operation sis_deploy__app__today_issues"},
 ]
