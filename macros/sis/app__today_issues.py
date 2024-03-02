@@ -58,7 +58,11 @@ sql = f"""
                         WHEN avg_rows_failed_delta > 0 THEN '⬆'
                         WHEN avg_rows_failed_delta < 0 THEN '⬇'
                         ELSE '➖'
-                    END  || '(' || avg_rows_failed_delta::NUMBER || ')' AS indicator
+                    END  || '(' || avg_rows_failed_delta::NUMBER || ')' AS indicator,
+                    CASE
+                        WHEN yesterday.avg_rows_failed = 0 THEN 0
+                        ELSE ABS(avg_rows_failed)
+                    END AS priortiy
         FROM        today
         LEFT JOIN   yesterday USING (test_unique_id)
         WHERE       today.status > 0 OR yesterday.status > 0
@@ -69,6 +73,7 @@ sql = f"""
             avg_rows_failed,
             last_rows_failed
     FROM    final
+    ORDER BY priortiy
     
 """
 data = session.sql(sql)
