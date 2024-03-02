@@ -52,6 +52,8 @@ with card_columns[0]:
     st.metric(label="Coverage Percentage", value=float(data[0]["TEST_COVERAGE"]), delta=float(data[0]["TEST_COVERAGE_DELTA"]))
 with card_columns[1]:
     st.metric(label="Test to Column", value=data[0]["TEST_TO_COLUMN"], delta=data[0]["TEST_TO_COLUMN_DELTA"])
+with st.expander(label="Data"):
+    st.dataframe(data, use_container_width=True)
     
 # Last 7 days coverage
 st.caption("Last 7 days Coverage:")
@@ -75,6 +77,8 @@ sql = f"""
 """
 data = session.sql(sql)
 st.line_chart(data=data, x="RUN_TIME", y=["TEST_COVERAGE", "TARGET"], use_container_width=True)
+with st.expander(label="Data"):
+    st.dataframe(data, use_container_width=True)
 
 # Source data
 st.subheader("Source data")
