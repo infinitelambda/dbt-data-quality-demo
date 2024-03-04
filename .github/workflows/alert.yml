@@ -15,7 +15,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install deps
-        run: pip install diqu
+        run: pip install diqu "snowflake-connector-python[pandas]"
 
       - name: Preflight misc
         run: |
