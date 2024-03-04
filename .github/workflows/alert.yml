@@ -25,5 +25,10 @@ jobs:
           DBT_ENV_SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
           DBT_ENV_SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           DBT_ENV_SECRET_SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-          SLACK: TODO
-          JIRA: TODO
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+          JIRA_SERVER: ${{ secrets.JIRA_SERVER }}
+          JIRA_AUTH_USER: ${{ secrets.JIRA_AUTH_USER }}
+          JIRA_AUTH_PASSWORD: ${{ secrets.JIRA_AUTH_PASSWORD }}
+          JIRA_PROJECT_ID: ${{ secrets.JIRA_PROJECT_ID }}
+
