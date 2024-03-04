@@ -51,10 +51,10 @@ sql = f"""
                     today.kpi_category,
                     today.dq_issue_type,
                     COALESCE(today.avg_rows_failed, 0) AS avg_rows_failed,
-                    COALESCE(today.avg_rows_failed - yesterday.avg_rows_failed, 0) AS avg_rows_failed_delta,
+                    COALESCE(today.avg_rows_failed - COALESCE(yesterday.avg_rows_failed, 0), 0) AS avg_rows_failed_delta,
                     COALESCE(today.last_rows_failed, 0) AS last_rows_failed,
                     CASE
-                        WHEN yesterday.avg_rows_failed = 0 THEN '❗'
+                        WHEN COALESCE(yesterday.avg_rows_failed, 0) = 0 THEN '❗'
                         WHEN avg_rows_failed_delta > 0 THEN '⬆'
                         WHEN avg_rows_failed_delta < 0 THEN '⬇'
                         ELSE '➖'
