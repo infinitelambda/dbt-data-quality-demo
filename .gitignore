@@ -2,6 +2,7 @@
 dbt_packages/
 logs/
 .env/
+.diqu/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
