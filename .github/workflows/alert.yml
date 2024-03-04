@@ -17,6 +17,11 @@ jobs:
       - name: Install deps
         run: pip install diqu
 
+      - name: Preflight misc
+        run: |
+          mkdir ~/.dbt
+          cp misc/alert.profiles.yml ~/.dbt/profiles.yml
+
       - name: Alert to Slack & JIRA
         run: diqu alert -t slack -t jira
         env:

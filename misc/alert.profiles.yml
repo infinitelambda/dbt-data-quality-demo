@@ -3,18 +3,8 @@ config:
     use_colors: True
 
 dbt_data_quality_demo:
-  target: dev
+  target: alert
   outputs:
-    dev:
-      type: snowflake
-      account: <YOUR_ACCOUNT>
-      warehouse: wh_dbt_data_quality_demo
-      database: dbt_data_quality_demo
-      role: role_dbt_data_quality_demo
-      schema: <YOUR_SCHEMA>
-      user: <YOUR_EMAIL>
-      authenticator: externalbrowser
-      threads: 10
     alert:
       type: snowflake
       account: "{{ env_var('DBT_ENV_SNOWFLAKE_ACCOUNT') }}"
