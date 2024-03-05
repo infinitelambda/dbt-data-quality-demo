@@ -62,7 +62,7 @@ sql = f"""
         SELECT * FROM dbt_dat.test_coverage
     ),
     dim_date AS (
-        SELECT  DATEADD(DAY, -SEQ4(), CURRENT_DATE()) AS date
+        SELECT  DATEADD(DAY, -SEQ4()+1, CURRENT_DATE()) AS date
         FROM    TABLE(GENERATOR(ROWCOUNT=>7))
         WHERE   date <= (SELECT MAX(DATE_TRUNC('day', check_timestamp)) FROM source)
     )

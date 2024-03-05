@@ -22,6 +22,52 @@ sql = f"""
         SELECT * FROM dbt_dat.bi_dq_metrics
     ),
     today AS (
+        SELECT  DATE_TRUNC('day', run_time) AS run_date,
+                AVG((rows_processed - rows_failed) * 1.00 / NULLIF(rows_processed,0)) * 100 AS dq_score,
+                AVG(rows_processed)::INT AS rows_processed,
+                AVG(rows_failed)::INT AS rows_failed
+        FROM    source
+        WHERE   DATE_TRUNC('day', run_time) = (SELECT MAX(DATE_TRUNC('day', run_time)) FROM source)
+        GROUP BY ALL
+    ),
+    yesterday AS (
+        SELECT  AVG((rows_processed - rows_failed) * 1.00 / NULLIF(rows_processed,0)) * 100 AS dq_score,
+                AVG(rows_processed)::INT AS rows_processed,
+                AVG(rows_failed)::INT AS rows_failed
+        FROM    source
+        WHERE   DATE_TRUNC('day', run_time) = (
+                    SELECT  MAX(DATE_TRUNC('day', run_time))
+                    FROM    source
+                    WHERE   run_time < (SELECT MIN(run_date) FROM today)
+                )
+        GROUP BY ALL
+    )
+    SELECT      COALESCE(today.dq_score, 0) AS dq_score,
+                COALESCE(today.dq_score - yesterday.dq_score, 0) AS dq_score_delta,
+                COALESCE(today.rows_processed, 0) AS rows_processed,
+                COALESCE(today.rows_processed - yesterday.rows_processed, 0) AS rows_processed_delta,
+                COALESCE(today.rows_failed, 0) AS rows_failed,
+                COALESCE(today.rows_failed - yesterday.rows_failed, 0) AS rows_failed_delta
+    FROM        today
+    CROSS JOIN   yesterday
+"""
+data = session.sql(sql).collect()
+card_columns = st.columns(3)
+with card_columns[0]:
+    st.metric(label="Quality Score", value=float(data[0]["DQ_SCORE"]), delta=float(data[0]["DQ_SCORE_DELTA"]))
+with card_columns[1]:
+    st.metric(label="Rows Processed", value=int(data[0]["ROWS_PROCESSED"]), delta=int(data[0]["ROWS_PROCESSED_DELTA"]))
+with card_columns[2]:
+    st.metric(label="Rows Failed", value=int(data[0]["ROWS_FAILED"]), delta=int(data[0]["ROWS_FAILED_DELTA"]), delta_color="inverse")
+
+with st.expander(label="Data"):
+    st.dataframe(data)
+
+sql = f"""
+    WITH source AS (
+        SELECT * FROM dbt_dat.bi_dq_metrics
+    ),
+    today AS (
         SELECT  dq_dimension,
                 DATE_TRUNC('day', run_time) AS run_date,
                 AVG((rows_processed - rows_failed) * 1.00 / NULLIF(rows_processed,0)) * 100 AS dq_score,
@@ -38,8 +84,8 @@ sql = f"""
                 AVG(rows_failed)::INT AS rows_failed
         FROM    source
         WHERE   DATE_TRUNC('day', run_time) = (
-                    SELECT  MAX(DATE_TRUNC('day', run_time)) 
-                    FROM    source 
+                    SELECT  MAX(DATE_TRUNC('day', run_time))
+                    FROM    source
                     WHERE   run_time < (SELECT MIN(run_date) FROM today)
                 )
         GROUP BY ALL
@@ -53,26 +99,9 @@ sql = f"""
                 COALESCE(today.rows_failed - yesterday.rows_failed, 0) AS rows_failed_delta
     FROM        today
     LEFT JOIN   yesterday USING (dq_dimension)
-    
+
 """
 data = session.sql(sql)
-
-card_columns = st.columns(3)
-card_data = data.select(
-    avg(data.dq_score).alias("dq_score"),
-    avg(data.dq_score_delta).alias("dq_score_delta"),
-    avg(data.rows_processed).alias("rows_processed"),
-    avg(data.rows_processed_delta).alias("rows_processed_delta"),
-    avg(data.rows_failed).alias("rows_failed"),
-    avg(data.rows_failed_delta).alias("rows_failed_delta")
-).collect()
-with card_columns[0]:
-    st.metric(label="Quality Score", value=float(card_data[0]["DQ_SCORE"]), delta=float(card_data[0]["DQ_SCORE_DELTA"]))
-with card_columns[1]:
-    st.metric(label="Rows Processed", value=int(card_data[0]["ROWS_PROCESSED"]), delta=int(card_data[0]["ROWS_PROCESSED_DELTA"]))
-with card_columns[2]:
-    st.metric(label="Rows Failed", value=int(card_data[0]["ROWS_FAILED"]), delta=int(card_data[0]["ROWS_FAILED_DELTA"]), delta_color="inverse")
-    
 kpis_columns = st.columns(6)
 with kpis_columns[0]:
     data_kpi = data.filter("DQ_KPI = 'Accuracy'").collect()
@@ -95,7 +124,7 @@ with kpis_columns[5]:
 
 with st.expander(label="Data"):
     st.dataframe(data)
-    
+
 # Last 7 days score
 st.caption("Last 7 days Scoring:")
 sql = f"""
@@ -103,7 +132,7 @@ sql = f"""
         SELECT * FROM dbt_dat.bi_dq_metrics
     ),
     dim_date AS (
-        SELECT  DATEADD(DAY, -SEQ4(), CURRENT_DATE()) AS date
+        SELECT  DATEADD(DAY, -SEQ4()+1, CURRENT_DATE()) AS date
         FROM    TABLE(GENERATOR(ROWCOUNT=>7))
         WHERE   date <= (SELECT MAX(DATE_TRUNC('day', run_time)) FROM source)
     )
@@ -112,7 +141,7 @@ sql = f"""
                 CAST(90 AS FLOAT) AS target
     FROM        dim_date
     LEFT JOIN   source
-        ON      source.run_time::DATE = dim_date.date
+        ON      DATE_TRUNC('day', run_time) = dim_date.date
     GROUP BY    1
     ORDER BY    1 desc
 """
@@ -121,13 +150,13 @@ st.line_chart(data=data.to_pandas(), x="RUN_TIME", y=["SCORE", "TARGET"], use_co
 
 with st.expander(label="Data"):
     st.dataframe(data, use_container_width=True)
-    
+
 # Source data
 st.subheader("Source data")
 with st.expander("Sample 100 most recent logs"):
     sql = f"""
-        SELECT      * 
-        FROM        dq_issue_log 
+        SELECT      *
+        FROM        dq_issue_log
         WHERE       no_of_records != 0
         ORDER BY    check_timestamp desc
         LIMIT       100
