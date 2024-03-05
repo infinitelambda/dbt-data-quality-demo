@@ -68,7 +68,7 @@ sql = f"""
     )
     SELECT      dim_date.date AS run_time,
                 CAST(COALESCE(AVG(source.coverage_pct), 0) AS FLOAT) AS test_coverage,
-                CAST(70 AS FLOAT) AS target
+                CAST(30 AS FLOAT) AS target
     FROM        dim_date
     LEFT JOIN   source
         ON      source.check_timestamp::DATE = dim_date.date
