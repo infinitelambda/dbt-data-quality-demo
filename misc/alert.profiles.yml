@@ -11,7 +11,7 @@ dbt_data_quality_demo:
       warehouse: DEMO_WH
       database: MINHNGO_DEV_DATABASE
       role: MINHNGO_DEV_ROLE
-      schema: DIQU_DEV
+      schema: DIQU_DEV_AUDIT
       user: minh@infinitelambda.com
       password: "{{ env_var('DBT_ENV_SECRET_SNOWFLAKE_PASSWORD') }}"
       threads: 4
