@@ -23,7 +23,7 @@ jobs:
           cp misc/alert.profiles.yml ~/.dbt/profiles.yml
 
       - name: Alert to Slack & JIRA
-        run: diqu alert --to slack --to jira
+        run: diqu alert --to slack --to jira --query-database MINHNGO_DEV_DATABASE --query-schema DIQU_DEV_AUDIT
         env:
           DBT_ENV_SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           DBT_ENV_SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}

@@ -20,7 +20,8 @@ clean-targets:
 require-dbt-version: [">=1.0.0", "<2.0.0"]
 
 vars:
-  dbt_dq_tool_schema: COMMON
+  dbt_dq_tool_schema: AUDIT
+  dq_tools_enable_store_test_results: True
 
 on-run-end:
   - '{{ dq_tools.store_test_results(results) }}'
